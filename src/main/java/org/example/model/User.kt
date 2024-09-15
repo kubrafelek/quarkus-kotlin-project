@@ -1,24 +1,39 @@
 package org.example.model
 
-import jakarta.enterprise.context.ApplicationScoped
-import jakarta.persistence.CascadeType
-import jakarta.persistence.Entity
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.OneToMany
+import io.quarkus.elytron.security.common.BcryptUtil
+import io.quarkus.hibernate.orm.panache.PanacheEntity
+import io.quarkus.security.jpa.UserDefinition
+import jakarta.persistence.*
+import java.time.LocalDateTime
 
-@ApplicationScoped
+
 @Entity
-open class User(
+@UserDefinition
+data class User(
 
-    open var firstName: String? = null,
-    open var lastName: String? = null,
-    open var username: String? = null,
-    open var email: String? = null,
-    open var password: String? = null,
-    open var adminRole: String? = null,
+    @Id @GeneratedValue(strategy = GenerationType.AUTO) val id: Long? = 0,
 
-    ) : BaseModel() {
-    @OneToMany(targetEntity = Post::class, cascade = [CascadeType.ALL])
-    @JoinColumn(referencedColumnName = "id", name = "user_id")
-    open var posts: List<Post>? = null
+    val username: String?,
+    val password: String?,
+
+    val createdAt: LocalDateTime? = LocalDateTime.now(),
+    val updatedAt: LocalDateTime? = LocalDateTime.now(),
+
+    @ElementCollection(targetClass = Role::class, fetch = FetchType.EAGER) @CollectionTable(
+        name = "authorities",
+        joinColumns = [JoinColumn(name = "user_id")]
+    ) @Enumerated(EnumType.STRING) val authorities: Set<Role> = HashSet(),
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = [CascadeType.ALL]) val posts: Set<Post> = HashSet(),
+) : PanacheEntity() {
+    constructor() : this(null, null, null, LocalDateTime.now(), LocalDateTime.now(), emptySet())
+    constructor(username: String?, password: String?) : this(
+        null,
+        username,
+        BcryptUtil.bcryptHash(password),
+        LocalDateTime.now(),
+        LocalDateTime.now(),
+        emptySet(),
+        emptySet()
+    )
 }

@@ -25,6 +25,8 @@ dependencies {
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")
     implementation(kotlin("stdlib-jdk8"))
+    implementation("io.quarkus:quarkus-security-jpa")
+    implementation("io.quarkus:quarkus-security-jpa-reactive")
 }
 
 group = "org.example"
