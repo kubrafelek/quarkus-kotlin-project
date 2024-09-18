@@ -1,5 +1,6 @@
 package org.example.resource
 
+import io.quarkus.security.identity.SecurityIdentity
 import jakarta.annotation.security.RolesAllowed
 import jakarta.transaction.Transactional
 import jakarta.ws.rs.*
@@ -11,25 +12,30 @@ import org.example.repository.PostRepository
 @Path("/posts")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-class PostResource(private val postRepository: PostRepository) {
+class PostResource(
+    private val postRepository: PostRepository,
+    private val securityIdentity: SecurityIdentity,
+) {
 
     @GET
-    @RolesAllowed("user") // Allow users with the "user" role to access this
+    @RolesAllowed("user")
     fun getAll(): List<Post> {
         return postRepository.listAll()
     }
 
     @GET
     @Path("/{id}")
-    @RolesAllowed("user") // Allow users with the "user" role to access this
+    @RolesAllowed("user")
     fun getById(@PathParam("id") id: Long): Post {
         return postRepository.findById(id) ?: throw WebApplicationException("Post not found", Response.Status.NOT_FOUND)
     }
 
     @POST
     @Transactional
-    @RolesAllowed("admin") // Only admins can create posts
+    @RolesAllowed("admin")
     fun create(post: Post): Response {
+        val userIdClaim = securityIdentity.principal.name // Get the userId claim
+        // Further validation or logging based on custom claims can be added here
         postRepository.persist(post)
         return Response.ok(post).status(Response.Status.CREATED).build()
     }
@@ -37,10 +43,16 @@ class PostResource(private val postRepository: PostRepository) {
     @PUT
     @Path("/{id}")
     @Transactional
-    @RolesAllowed("admin") // Only admins can update posts
+    @RolesAllowed("user")
     fun update(@PathParam("id") id: Long, post: Post): Response {
         val entity =
             postRepository.findById(id) ?: throw WebApplicationException("Post not found", Response.Status.NOT_FOUND)
+        val jwtUserId = securityIdentity.principal.name
+
+        // Allow update only if the userId from JWT matches the post owner's ID
+        if (jwtUserId != entity.id.toString()) {
+            throw WebApplicationException("User is not authorized to update this post", Response.Status.FORBIDDEN)
+        }
 
         entity.title = post.title
         entity.body = post.body
@@ -51,7 +63,7 @@ class PostResource(private val postRepository: PostRepository) {
     @DELETE
     @Path("/{id}")
     @Transactional
-    @RolesAllowed("admin") // Only admins can delete posts
+    @RolesAllowed("admin")
     fun delete(@PathParam("id") id: Long): Response {
         val entity =
             postRepository.findById(id) ?: throw WebApplicationException("Post not found", Response.Status.NOT_FOUND)

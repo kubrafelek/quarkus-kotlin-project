@@ -1,27 +1,20 @@
 package org.example.model
 
-import jakarta.persistence.*
+import jakarta.persistence.Entity
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
 import java.time.LocalDateTime
 
 @Entity
 data class Post(
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    val id: Long?,
-
-    var title: String?,
-    var body: String?,
-
-    val createdAt: LocalDateTime? = LocalDateTime.now(),
-    val updatedAt: LocalDateTime? = LocalDateTime.now(),
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    val user: User?
-
-    ) {
-    constructor() : this(null, null, null, LocalDateTime.now(), LocalDateTime.now(), null)
-    constructor(title: String?, body: String?, user: User?) : this(null, title, body, LocalDateTime.now(), LocalDateTime.now(), user)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    val id: Long? = null,
+    var title: String,
+    var body: String,
+    var createdAt: LocalDateTime = LocalDateTime.now(),
+) {
+    constructor() : this(null, "", "")
 }
 
 
