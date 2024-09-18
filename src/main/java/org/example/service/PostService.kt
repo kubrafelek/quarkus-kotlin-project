@@ -22,7 +22,7 @@ class PostService {
     fun updatePost(id: Long, post: Post) {
         val existingPost = postRepository.findById(id)
         existingPost?.title = post.title
-        existingPost?.content = post.content
+        existingPost?.body = post.body
         postRepository.persist(existingPost)
     }
 

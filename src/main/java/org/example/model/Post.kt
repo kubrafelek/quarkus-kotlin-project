@@ -10,8 +10,8 @@ data class Post(
     @GeneratedValue(strategy = GenerationType.AUTO)
     val id: Long?,
 
-    val title: String?,
-    val body: String?,
+    var title: String?,
+    var body: String?,
 
     val createdAt: LocalDateTime? = LocalDateTime.now(),
     val updatedAt: LocalDateTime? = LocalDateTime.now(),
