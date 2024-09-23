@@ -5,6 +5,4 @@ import jakarta.enterprise.context.ApplicationScoped
 import org.example.model.Post
 
 @ApplicationScoped
-class PostRepository : PanacheRepository<Post> {
-    fun findByTitle(title: String) = find("title", title).firstResult<Post>()
-}
+class PostRepository : PanacheRepository<Post>

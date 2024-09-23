@@ -1,63 +1,41 @@
 package org.example.resource
 
-import io.quarkus.security.identity.SecurityIdentity
-import io.smallrye.jwt.config.ConfigLogging.log
-import jakarta.inject.Inject
+import jakarta.validation.Valid
 import jakarta.ws.rs.*
-import jakarta.ws.rs.core.MediaType
-import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody
-import org.example.exceptions.UsernameNotFoundException
-import org.example.model.AuthRequest
-import org.example.model.CreateUserRequest
-import org.example.service.JwtService
-import org.example.service.UserService
+import jakarta.ws.rs.core.Response
+import org.eclipse.microprofile.openapi.annotations.Operation
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse
+import org.example.config.TokenHelper
+import org.example.dto.AccountDto
+import org.example.model.Account
+import org.example.service.AuthService
 
 @Path("/auth")
-@Produces(MediaType.APPLICATION_JSON)
-@Consumes(MediaType.APPLICATION_JSON)
-class UserResource {
-
-    @Inject
-    lateinit var userService: UserService
-
-    @Inject
-    lateinit var jwtService: JwtService
-
-    @Inject
-    lateinit var securityIdentity: SecurityIdentity
-
-    @GET
-    @Path("/welcome")
-    fun welcome(): String {
-        return "Hello World!"
-    }
-
-    @GET
-    @Path("/user")
-    fun getUserString(): String {
-        return "This is USER!"
-    }
-
-    @GET
-    @Path("/admin")
-    fun getAdminString(): String {
-        return "This is ADMIN!"
-    }
+class AuthResource(private val usersService: AuthService, private val tokenHelper: TokenHelper) {
 
     @POST
-    @Path("/addNewUser")
-    fun addUser(@RequestBody request: CreateUserRequest) {
-        return userService.createUser(request)
-    }
-
-    @POST
-    @Path("/generateToken")
-    fun generateToken(@RequestBody request: AuthRequest): String {
-        if (securityIdentity.isAnonymous) {
-            log.info("username or password is null")
-            throw UsernameNotFoundException("username or password is null")
+    @Path("/register")
+    @Operation(summary = "Create a new user account")
+    @APIResponse(responseCode = "201", description = "Account created")
+    fun save(@Valid accountDto: AccountDto): Response {
+        if (usersService.isUsernameTaken(accountDto.username)) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity("Username '${accountDto.username}' already taken.")
+                .build()
         }
-        return jwtService.generateToken(request.username)
-    }
+        val account = AccountDto.toDto(accountDto)
+        val result = usersService.save(account)
+        return if (result != null) {
+            Response.status(Response.Status.CREATED).entity("created $result").build()
+        } else Response.status(Response.Status.BAD_REQUEST).entity("unable to create user!").build()
 
+        @POST
+        @Path("/login")
+        fun login(@Valid user: Account): Response {
+            return if (usersService.authenticate(user.username, user.password)) {
+                val token = tokenHelper.getToken(user)
+                Response.ok(token).build()
+            } else Response.status(Response.Status.BAD_REQUEST).entity("Invalid credentials!").build()
+        }
+    }
 }

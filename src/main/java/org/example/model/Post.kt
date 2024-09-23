@@ -4,17 +4,21 @@ import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
-import java.time.LocalDateTime
+import jakarta.persistence.ManyToOne
+import java.time.OffsetDateTime
 
 @Entity
-data class Post(
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
-    var title: String,
-    var body: String,
-    var createdAt: LocalDateTime = LocalDateTime.now(),
-) {
-    constructor() : this(null, "", "")
+class Post {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    var id: Long? = null
+
+    lateinit var title: String
+    lateinit var body: String
+    lateinit var createdAt: OffsetDateTime
+    lateinit var updatedAt: OffsetDateTime
+
+    @ManyToOne
+    lateinit var account: Account
 }
-
-

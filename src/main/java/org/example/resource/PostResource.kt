@@ -2,6 +2,7 @@ package org.example.resource
 
 import io.quarkus.security.identity.SecurityIdentity
 import jakarta.annotation.security.RolesAllowed
+import jakarta.inject.Inject
 import jakarta.transaction.Transactional
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
@@ -12,14 +13,16 @@ import org.example.repository.PostRepository
 @Path("/posts")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-class PostResource(
-    private val postRepository: PostRepository,
-    private val securityIdentity: SecurityIdentity,
-) {
+class PostResource {
+    @Inject
+    lateinit var postRepository: PostRepository
+
+    @Inject
+    lateinit var securityIdentity: SecurityIdentity
 
     @GET
     @RolesAllowed("user")
-    fun getAll(): List<Post> {
+    fun getAll(): List<Post?>? {
         return postRepository.listAll()
     }
 
