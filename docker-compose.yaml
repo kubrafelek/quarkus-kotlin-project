@@ -1,0 +1,23 @@
+version: "2.3"
+
+services:
+  quarkus-db:
+    image: "postgres:13.1-alpine"
+    mem_limit: 128m
+    environment:
+      - POSTGRES_USER=quarkus
+      - POSTGRES_PASSWORD=quarkus
+      - POSTGRES_DB=db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U quarkus"]
+      interval: 5s
+      timeout: 5s
+      retries: 6
+    ports:
+      - "5432:5432"
+    networks:
+      - quarkus
+
+networks:
+  quarkus:
+    driver: bridge
