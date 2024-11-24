@@ -1,61 +1,48 @@
 package org.example.user
 
 import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
+import jakarta.transaction.Transactional
 import org.example.exception.EmailAlreadyExistsException
 import org.example.exception.InvalidPasswordException
 import org.example.exception.UnregisteredEmailException
-import org.example.exception.UserNotFoundException
 import org.example.exception.UsernameAlreadyExistsException
 import org.example.security.BCryptHashProvider
 import org.example.security.JwtTokenProvider
 
+@Transactional
 @ApplicationScoped
-class UserService(
+class UserService @Inject constructor(
     private val repository: UserRepository,
     private val tokenProvider: JwtTokenProvider,
     private val hashProvider: BCryptHashProvider,
 ) {
-    fun get(username: String): UserResponse = repository.findById(username)?.run {
-        UserResponse.build(this, tokenProvider.create(username))
-    } ?: throw UserNotFoundException()
 
-    fun register(newUser: UserRegistrationRequest): UserResponse = newUser.run {
-        if (repository.existsUsername(newUser.username)) throw UsernameAlreadyExistsException()
-        if (repository.existsEmail(newUser.email)) throw EmailAlreadyExistsException()
+    fun register(newUser: UserRegistrationRequest): UserResponse {
+        if (repository.existsByUsername(newUser.username)) throw UsernameAlreadyExistsException()
+        if (repository.existsByEmail(newUser.email)) throw EmailAlreadyExistsException()
 
-        UserResponse.build(
-            this.toEntity().also {
-                it.password = hashProvider.hash(password)
-                repository.persist(it)
-            },
-            tokenProvider.create(username)
-        )
+        val userEntity = newUser.toEntity().apply {
+            id = null  // Explicitly set ID to null
+        }
+        userEntity.password = hashProvider.hash(newUser.password)
+        repository.persist(userEntity)
+
+        val token = tokenProvider.create(newUser.username)
+        return UserResponse.build(userEntity, token)
     }
 
-    fun login(userLoginRequest: UserLoginRequest) = repository.findByEmail(userLoginRequest.email)?.run {
-        if (!hashProvider.verify(userLoginRequest.password, password)) throw InvalidPasswordException()
-        else UserResponse.build(this, tokenProvider.create(username))
-    } ?: throw UnregisteredEmailException()
 
-    fun update(loggedInUserId: String, updateRequest: UserUpdateRequest): UserResponse = repository
-        .findById(loggedInUserId)
-        ?.run {
-            if (updateRequest.username != null &&
-                updateRequest.username != username &&
-                repository.existsUsername(updateRequest.username)
-            ) throw UsernameAlreadyExistsException()
+    fun findByUsername(username: String): User = repository.findByUsername(username)
 
-            if (updateRequest.email != null &&
-                updateRequest.email != email &&
-                repository.existsEmail(updateRequest.email)
-            ) throw EmailAlreadyExistsException()
+    fun login(userLoginRequest: UserLoginRequest): UserResponse {
+        val user = repository.findByEmail(userLoginRequest.email)
+            ?: throw UnregisteredEmailException()
 
-            UserResponse.build(
-                updateRequest.applyChangesTo(this).apply {
-                    if (updateRequest.password != null) this.password = hashProvider.hash(password)
-                    repository.persist(this)
-                },
-                tokenProvider.create(username)
-            )
-        } ?: throw UserNotFoundException()
+        if (!hashProvider.verify(userLoginRequest.password, user.password)) {
+            throw InvalidPasswordException()
+        }
+
+        return UserResponse.build(user, tokenProvider.create(user.username.toString()))
+    }
 }

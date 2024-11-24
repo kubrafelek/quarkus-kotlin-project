@@ -1,35 +1,29 @@
 package org.example.user
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.annotation.JsonRootName
 import io.quarkus.runtime.annotations.RegisterForReflection
 
-@JsonRootName("user")
 @RegisterForReflection
 data class UserResponse(
+    @JsonProperty("id")
+    var id: Long?,
+
     @JsonProperty("username")
-    val username: String,
+    var username: String,
 
     @JsonProperty("email")
-    val email: String,
+    var email: String,
 
     @JsonProperty("token")
-    val token: String,
+    var token: String,
 
-    @JsonProperty("bio")
-    val bio: String,
-
-    @JsonProperty("image")
-    val image: String,
-) {
+    ) {
     companion object {
-        @JvmStatic
         fun build(user: User, token: String): UserResponse = UserResponse(
+            id = user.id,
             username = user.username,
             email = user.email,
             token = token,
-            bio = user.bio,
-            image = user.image,
         )
     }
 }

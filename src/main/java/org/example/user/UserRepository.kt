@@ -1,21 +1,23 @@
 package org.example.user
 
-import io.quarkus.hibernate.orm.panache.kotlin.PanacheRepositoryBase
-import io.quarkus.panache.common.Parameters.with
+import io.quarkus.hibernate.orm.panache.kotlin.PanacheRepository
 import jakarta.enterprise.context.ApplicationScoped
+import jakarta.transaction.Transactional
 
 @ApplicationScoped
-class UserRepository : PanacheRepositoryBase<User, String> {
+class UserRepository : PanacheRepository<User> {
+    fun findByUsername(username: String): User =
+        find("username", username).stream().findFirst().get()
+
     fun findByEmail(email: String): User? =
-        find("upper(email)", email.uppercase().trim()).firstResult()
+        find("email", email).firstResult()
 
-    fun existsUsername(subjectedUserId: String): Boolean = count(
-        query = "id.username = :subjectedUserId",
-        params = with("subjectedUserId", subjectedUserId)
-    ) > 0
+    fun existsByUsername(username: String): Boolean =
+        count("username", username) > 0
 
-    fun existsEmail(subjectedUserEmail: String): Boolean = count(
-        query = "upper(email) = :subjectedUserEmail",
-        params = with("subjectedUserEmail", subjectedUserEmail.uppercase().trim())
-    ) > 0
+    fun existsByEmail(email: String): Boolean =
+        count("email", email) > 0
+
+    fun findById(id: String): User? =
+        find("id", id).firstResult()
 }

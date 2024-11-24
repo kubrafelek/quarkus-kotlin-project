@@ -1,22 +1,30 @@
 package org.example.user
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.annotation.JsonRootName
 import io.quarkus.runtime.annotations.RegisterForReflection
+import jakarta.validation.constraints.Email
+import jakarta.validation.constraints.NotBlank
 
-@JsonRootName("user")
 @RegisterForReflection
 data class UserRegistrationRequest(
-    @JsonProperty("username")
+
+    @field:JsonProperty("id")
+    val id: Long,
+
+    @field:JsonProperty("username")
+    @field:NotBlank
     val username: String,
 
-    @JsonProperty("email")
+    @field:JsonProperty("email")
+    @field:Email
     val email: String,
 
-    @JsonProperty("password")
+    @field:JsonProperty("password")
+    @field:NotBlank
     val password: String,
 ) {
     fun toEntity() = User(
+        id = id,
         username = username,
         email = email,
         password = password
