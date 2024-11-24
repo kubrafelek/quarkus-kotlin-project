@@ -9,6 +9,7 @@ import org.example.exception.UnregisteredEmailException
 import org.example.exception.UsernameAlreadyExistsException
 import org.example.security.BCryptHashProvider
 import org.example.security.JwtTokenProvider
+import java.util.UUID.randomUUID
 
 @Transactional
 @ApplicationScoped
@@ -22,16 +23,12 @@ class UserService @Inject constructor(
         if (repository.existsByUsername(newUser.username)) throw UsernameAlreadyExistsException()
         if (repository.existsByEmail(newUser.email)) throw EmailAlreadyExistsException()
 
-        val userEntity = newUser.toEntity().apply {
-            id = null  // Explicitly set ID to null
-        }
+        val userEntity = newUser.toEntity()
         userEntity.password = hashProvider.hash(newUser.password)
         repository.persist(userEntity)
 
-        val token = tokenProvider.create(newUser.username)
-        return UserResponse.build(userEntity, token)
+        return UserResponse.build(userEntity, tokenProvider.create(newUser.username))
     }
-
 
     fun findByUsername(username: String): User = repository.findByUsername(username)
 

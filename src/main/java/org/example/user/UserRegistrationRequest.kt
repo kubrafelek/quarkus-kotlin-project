@@ -8,25 +8,16 @@ import jakarta.validation.constraints.NotBlank
 @RegisterForReflection
 data class UserRegistrationRequest(
 
-    @field:JsonProperty("id")
-    val id: Long,
+    @field:JsonProperty("username") @field:NotBlank val username: String,
 
-    @field:JsonProperty("username")
-    @field:NotBlank
-    val username: String,
+    @field:JsonProperty("email") @field:Email val email: String,
 
-    @field:JsonProperty("email")
-    @field:Email
-    val email: String,
-
-    @field:JsonProperty("password")
-    @field:NotBlank
-    val password: String,
+    @field:JsonProperty("password") @field:NotBlank val password: String,
 ) {
-    fun toEntity() = User(
-        id = id,
-        username = username,
-        email = email,
-        password = password
-    )
+    fun toEntity(): User {
+        return User().apply {
+            username = this@UserRegistrationRequest.username
+            email = this@UserRegistrationRequest.email
+        }
+    }
 }

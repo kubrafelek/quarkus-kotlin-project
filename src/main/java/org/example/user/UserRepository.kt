@@ -17,7 +17,4 @@ class UserRepository : PanacheRepository<User> {
 
     fun existsByEmail(email: String): Boolean =
         count("email", email) > 0
-
-    fun findById(id: String): User? =
-        find("id", id).firstResult()
 }

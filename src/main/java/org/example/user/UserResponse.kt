@@ -6,7 +6,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection
 @RegisterForReflection
 data class UserResponse(
     @JsonProperty("id")
-    var id: Long?,
+    var id: String,
 
     @JsonProperty("username")
     var username: String,
