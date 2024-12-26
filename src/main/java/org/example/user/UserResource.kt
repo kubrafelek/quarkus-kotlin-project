@@ -11,6 +11,7 @@ import jakarta.ws.rs.core.Context
 import jakarta.ws.rs.core.MediaType.APPLICATION_JSON
 import jakarta.ws.rs.core.Response
 import jakarta.ws.rs.core.SecurityContext
+import org.example.security.Role.ADMIN
 import org.example.web.Routes.USERS_PATH
 import org.example.web.Routes.USER_PATH
 
@@ -53,4 +54,20 @@ class UserResource @Inject constructor(
         .ok(service.findByUsername(securityContext.userPrincipal.name))
         .status(Response.Status.OK)
         .build()
+
+    @PUT
+    @Path(USER_PATH)
+    @Transactional
+    @RolesAllowed(USER.toString(), ADMIN)
+    fun updateLoggedInUser(
+        @Context securityContext: SecurityContext,
+        @Valid userUpdateRequest: UserUpdateRequest
+    ): Response {
+        val userId = securityContext.userPrincipal.name
+        val updatedUser = service.update(userId, userUpdateRequest)
+        return Response
+            .ok(updatedUser)
+            .status(Response.Status.OK)
+            .build()
+    }
 }

@@ -2,10 +2,13 @@ package org.example.user
 
 import io.quarkus.hibernate.orm.panache.kotlin.PanacheRepository
 import jakarta.enterprise.context.ApplicationScoped
-import jakarta.transaction.Transactional
 
 @ApplicationScoped
 class UserRepository : PanacheRepository<User> {
+
+    fun findById(id: String): User? =
+        find("id", id).firstResult()
+
     fun findByUsername(username: String): User =
         find("username", username).stream().findFirst().get()
 
