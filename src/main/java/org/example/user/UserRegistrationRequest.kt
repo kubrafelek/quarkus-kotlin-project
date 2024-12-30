@@ -18,6 +18,7 @@ data class UserRegistrationRequest(
         return User().apply {
             username = this@UserRegistrationRequest.username
             email = this@UserRegistrationRequest.email
+            role = Role.USER
         }
     }
 }

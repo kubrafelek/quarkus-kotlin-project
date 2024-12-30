@@ -14,6 +14,9 @@ data class UserResponse(
     @JsonProperty("email")
     var email: String,
 
+    @JsonProperty("role")
+    var role: Role,
+
     @JsonProperty("token")
     var token: String,
 
@@ -23,6 +26,7 @@ data class UserResponse(
             id = user.id,
             username = user.username,
             email = user.email,
+            role = user.role,
             token = token,
         )
     }

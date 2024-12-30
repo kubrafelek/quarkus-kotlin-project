@@ -1,6 +1,7 @@
 package org.example.user
 
 import jakarta.persistence.*
+import org.example.post.Post
 import org.example.utils.Tables.USER_TABLE
 
 @Entity
@@ -17,4 +18,10 @@ class User() {
     lateinit var email: String
 
     lateinit var password: String
+
+    @Enumerated(EnumType.STRING)
+    lateinit var role: Role
+
+    @OneToMany(mappedBy = "author", orphanRemoval = true)
+    var posts: MutableList<Post> = mutableListOf()
 }

@@ -47,7 +47,7 @@ class UserResource @Inject constructor(
 
     @GET
     @Path(USER_PATH)
-    @RolesAllowed(USER.toString())
+    @PermitAll
     fun getLoggedInUser(
         @Context securityContext: SecurityContext,
     ): Response = Response
@@ -57,13 +57,12 @@ class UserResource @Inject constructor(
 
     @PUT
     @Path(USER_PATH)
-    @Transactional
-    @RolesAllowed(USER.toString(), ADMIN)
+    @RolesAllowed(ADMIN)
     fun updateLoggedInUser(
         @Context securityContext: SecurityContext,
         @Valid userUpdateRequest: UserUpdateRequest
     ): Response {
-        val userId = securityContext.userPrincipal.name
+        val userId = service.findByUsername(securityContext.userPrincipal.name).id
         val updatedUser = service.update(userId, userUpdateRequest)
         return Response
             .ok(updatedUser)
